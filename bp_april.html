@@ -169,20 +169,20 @@ const refLinePlugin={
     const area=chart.chartArea;
     if(!y||!area) return;
     const ctx=chart.ctx;
-    const lbl={140:'⚠ 高压',90:'舒张警戒',60:'⚠ 低压'};
-    [{v:140,c:'#dc2626',w:1,d:[6,4]},{v:90,c:'#d97706',w:1,d:[6,4]},{v:60,c:'#e11d9c',w:2.5,d:[]}].forEach(({v,c,w,d})=>{
+    const lbl={140:'⚠ 高压',90:'舒张警戒',60:'⚠ 低压',45:'⚠ 危险低压'};
+    [{v:140,c:'#dc2626',w:1,d:[6,4]},{v:90,c:'#d97706',w:1,d:[6,4]},{v:60,c:'#e11d9c',w:2.5,d:[]},{v:45,c:'#e11d9c',w:2,d:[4,3]}].forEach(({v,c,w,d})=>{
       if(v<y.min||v>y.max) return;
       const yy=y.getPixelForValue(v);
       ctx.save();ctx.setLineDash(d);ctx.strokeStyle=c;ctx.lineWidth=w;
       ctx.beginPath();ctx.moveTo(area.left,yy);ctx.lineTo(area.right,yy);ctx.stroke();
-      ctx.fillStyle=c;ctx.font=v===60?'bold 11px sans-serif':'10px sans-serif';ctx.textAlign='right';
+      ctx.fillStyle=c;ctx.font=v<=60?'bold 11px sans-serif':'10px sans-serif';ctx.textAlign='right';
       ctx.fillText((lbl[v]||'')+' '+v,area.right-4,yy-4);ctx.restore();
     });
   }
 };
 Chart.register(refLinePlugin);
 
-function lineOpts(yMin,yMax){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:10},maxRotation:0},grid:{display:false}},y:{min:yMin,max:yMax,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}},elements:{line:{tension:.3}}};}
+function lineOpts(yMin,yMax){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:10},maxRotation:0},grid:{display:false}},y:{min:yMin,max:yMax,afterBuildTicks(axis){const base=[35,40,45,50,55,60,80,100,120,140,160,180].filter(v=>v>=yMin&&v<=yMax);axis.ticks=base.map(v=>({value:v}));},ticks:{font:{size:11},callback:function(v){return v<=60?v+'':v%20===0?v+'':'';}},grid:{color:function(ctx){return ctx.tick.value<60?'rgba(225,29,156,0.10)':ctx.tick.value===60?'rgba(225,29,156,0.25)':'#f1f5f9';}}}},elements:{line:{tension:.3}}};}
 
 // ========== STATE ==========
 let curMonth=ALL_MONTHS[0].id, curView='trend';
@@ -334,7 +334,7 @@ function renderCompare(){
     {label:'早上·舒张',data:contMD,borderColor:PCL.morning,backgroundColor:PCL.morning,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
     {label:'中午·舒张',data:contND,borderColor:PCL.noon,backgroundColor:PCL.noon,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
     {label:'晚上·舒张',data:contED,borderColor:PCL.evening,backgroundColor:PCL.evening,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
-  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:20},grid:{display:false}},y:{min:35,max:180,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}},elements:{line:{tension:.3}}},plugins:[monthBandPlugin]});
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:20},grid:{display:false}},y:{min:35,max:180,afterBuildTicks(axis){axis.ticks=[35,40,45,50,55,60,80,100,120,140,160,180].map(v=>({value:v}));},ticks:{font:{size:11},callback:function(v){return v<=60?v+'':v%20===0?v+'':'';}},grid:{color:function(ctx){return ctx.tick.value<60?'rgba(225,29,156,0.10)':ctx.tick.value===60?'rgba(225,29,156,0.25)':'#f1f5f9';}}}},elements:{line:{tension:.3}}},plugins:[monthBandPlugin]});
 
   // bar chart — x-axis = month×period, bars = 收缩/舒张, month label drawn on bar
   const periods=['morning','noon','evening'];
