@@ -3,311 +3,398 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>四月血压监测报告</title>
+<title>血压监测报告</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #1e293b; --sub: #94a3b8; --morning: #d97706; --noon: #dc2626; --evening: #2563eb; --morningL: #fbbf24; --noonL: #f87171; --eveningL: #93c5fd; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Inter','Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
-  .wrap { max-width:960px; margin:0 auto; padding:20px; }
-  .header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
-  .header h1 { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
-  .header p { color:var(--sub); font-size:13px; margin-top:4px; }
-  .badge { padding:6px 14px; border-radius:20px; font-weight:700; font-size:13px; }
-  .grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:16px; }
-  .period-card { padding:14px 16px; border-radius:12px; background:var(--card); border:1px solid var(--border); }
-  .period-card .label { font-size:12px; color:var(--sub); font-weight:500; margin-bottom:6px; display:flex; justify-content:space-between; }
-  .period-card .val { font-size:24px; font-weight:800; font-variant-numeric:tabular-nums; }
-  .period-card .val span { color:var(--sub); font-weight:400; }
-  .period-card .detail { font-size:11px; color:var(--sub); margin-top:4px; }
-  .stats-row { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-  .stat-card { flex:1 1 140px; padding:12px 14px; border-radius:10px; background:var(--card); border:1px solid var(--border); }
-  .stat-card .sl { font-size:11px; color:var(--sub); font-weight:500; margin-bottom:3px; }
-  .stat-card .sv { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; }
-  .stat-card .sv small { font-size:11px; font-weight:400; color:var(--sub); margin-left:3px; }
-  .tabs { display:flex; gap:3px; background:#f1f5f9; border-radius:8px; padding:3px; width:fit-content; margin-bottom:16px; flex-wrap:wrap; }
-  .tabs button { padding:7px 16px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:400; background:transparent; color:#64748b; transition:all .15s; }
-  .tabs button.active { background:#1e293b; color:#fff; font-weight:700; }
-  .chart-box { background:var(--card); border-radius:12px; border:1px solid var(--border); padding:20px 16px 12px; margin-bottom:16px; }
-  .chart-box h3 { font-size:15px; font-weight:700; margin-bottom:2px; }
-  .chart-box .desc { font-size:12px; color:var(--sub); margin-bottom:14px; }
-  .chart-canvas { position:relative; width:100%; }
-  .legend-row { display:flex; gap:16px; justify-content:center; margin-top:10px; font-size:12px; }
-  .legend-row .dot { width:10px; height:10px; border-radius:2px; display:inline-block; margin-right:4px; vertical-align:middle; }
-  .view { display:none; }
-  .view.active { display:block; }
-  table { width:100%; border-collapse:collapse; font-size:12px; font-variant-numeric:tabular-nums; }
-  thead th { padding:6px 4px; text-align:center; }
-  tbody td { padding:4px; text-align:center; }
-  tbody tr:nth-child(even) { background:#fafbfc; }
-  .hi { background:#fef2f2; color:#dc2626; font-weight:700; }
-  .lo { background:#eff6ff; color:#2563eb; }
-  .na { color:#d1d5db; }
-  .foot { margin-top:16px; font-size:11px; color:var(--sub); line-height:1.8; }
-  @media(max-width:600px) { .wrap{padding:12px;} .header h1{font-size:20px;} .period-card .val{font-size:20px;} }
+:root{--bg:#f8fafc;--card:#fff;--bd:#e2e8f0;--tx:#1e293b;--sub:#94a3b8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter','Noto Sans SC','PingFang SC',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.5;}
+.w{max-width:960px;margin:0 auto;padding:16px 20px;}
+h1{font-size:24px;font-weight:900;letter-spacing:-.5px;}
+.sub{color:var(--sub);font-size:13px;margin-top:4px;}
+.badge{display:inline-block;padding:5px 13px;border-radius:20px;font-weight:700;font-size:13px;margin-top:8px;}
+.pill-row{display:flex;gap:4px;background:#e2e8f0;border-radius:10px;padding:4px;width:fit-content;flex-wrap:wrap;}
+.pill-row button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;background:transparent;color:#64748b;transition:all .15s;}
+.pill-row button.on{background:var(--tx);color:#fff;font-weight:700;}
+.vtabs{display:flex;gap:3px;background:#f1f5f9;border-radius:8px;padding:3px;width:fit-content;flex-wrap:wrap;}
+.vtabs button{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:400;background:transparent;color:#64748b;transition:all .15s;}
+.vtabs button.on{background:var(--tx);color:#fff;font-weight:700;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px;}
+.pc{padding:14px 16px;border-radius:12px;background:var(--card);border:1px solid var(--bd);}
+.pc .lb{font-size:12px;color:var(--sub);font-weight:500;margin-bottom:6px;display:flex;justify-content:space-between;}
+.pc .vl{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;}
+.pc .vl span{color:var(--sub);font-weight:400;}
+.pc .dt{font-size:11px;color:var(--sub);margin-top:4px;}
+.sr{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.sc{flex:1 1 140px;padding:11px 14px;border-radius:10px;background:var(--card);border:1px solid var(--bd);}
+.sc .sl{font-size:11px;color:var(--sub);font-weight:500;margin-bottom:2px;}
+.sc .sv{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;}
+.sc .sv small{font-size:11px;font-weight:400;color:var(--sub);margin-left:3px;}
+.cb{background:var(--card);border-radius:12px;border:1px solid var(--bd);padding:18px 14px 10px;margin-bottom:14px;}
+.cb h3{font-size:15px;font-weight:700;margin-bottom:2px;}
+.cb .ds{font-size:12px;color:var(--sub);margin-bottom:12px;}
+.lgr{display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;}
+.lgr .d{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle;}
+table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}
+thead th{padding:5px 3px;text-align:center;}
+tbody td{padding:3px;text-align:center;}
+tbody tr:nth-child(even){background:#fafbfc;}
+.hi{background:#fef2f2!important;color:#dc2626;font-weight:700;}
+.lo{background:#eff6ff!important;color:#2563eb;}
+.na{color:#d1d5db;}
+.ft{margin-top:14px;font-size:11px;color:var(--sub);line-height:1.8;}
+@media(max-width:640px){.w{padding:10px;}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <!-- Header -->
-  <div class="header">
-    <div>
-      <h1>四月血压监测</h1>
-      <p id="headerSub"></p>
-    </div>
-    <div class="badge" id="headerBadge"></div>
-  </div>
-
-  <!-- Period cards -->
-  <div class="grid3" id="periodCards"></div>
-
-  <!-- Stat cards -->
-  <div class="stats-row" id="statCards"></div>
-
-  <!-- Tabs -->
-  <div class="tabs" id="tabs">
-    <button class="active" data-v="trend">日均趋势</button>
-    <button data-v="detail">逐次记录</button>
-    <button data-v="pulse">脉压差</button>
-    <button data-v="weekly">周对比</button>
-    <button data-v="table">数据表</button>
-  </div>
-
-  <!-- Views -->
-  <div id="v-trend" class="view active">
-    <div class="chart-box">
-      <h3>每日平均血压趋势</h3>
-      <div class="desc">实线 = 收缩压 · 虚线 = 舒张压 · 悬停查看详情</div>
-      <div class="chart-canvas"><canvas id="cTrend"></canvas></div>
-    </div>
-  </div>
-  <div id="v-detail" class="view">
-    <div class="chart-box">
-      <h3 id="detailTitle"></h3>
-      <div class="desc">每个点 = 单次测量，颜色区分早中晚时段</div>
-      <div class="chart-canvas"><canvas id="cDetail"></canvas></div>
-      <div class="legend-row">
-        <span><span class="dot" style="background:#d97706"></span>早上</span>
-        <span><span class="dot" style="background:#dc2626"></span>中午</span>
-        <span><span class="dot" style="background:#2563eb"></span>晚上</span>
-      </div>
-    </div>
-  </div>
-  <div id="v-pulse" class="view">
-    <div class="chart-box">
-      <h3>脉压差趋势</h3>
-      <div class="desc">脉压差 = 收缩压 − 舒张压 · 正常范围 30–40 mmHg（绿色区域）</div>
-      <div class="chart-canvas"><canvas id="cPulse"></canvas></div>
-    </div>
-  </div>
-  <div id="v-weekly" class="view">
-    <div class="chart-box">
-      <h3>周平均对比</h3>
-      <div class="desc">按周汇总的平均收缩压与舒张压</div>
-      <div class="chart-canvas"><canvas id="cWeekly"></canvas></div>
-    </div>
-  </div>
-  <div id="v-table" class="view">
-    <div class="chart-box" style="overflow-x:auto">
-      <table id="dataTable"></table>
-    </div>
-  </div>
-
-  <div class="foot">
-    注：收缩压 ≥140 或舒张压 ≥90 mmHg 为高血压标准（中国/WHO）。第5天中午、第30天早上数据缺失。数据来源为手写记录转录，如有误差请核对原始记录。
-  </div>
+<div class="w">
+<h1>血压监测报告</h1>
+<p class="sub" id="hSub"></p>
+<div id="hBadge"></div>
+<div class="pill-row" id="mTabs" style="margin:16px 0"></div>
+<div class="g3" id="pCards"></div>
+<div class="sr" id="sCards"></div>
+<div class="vtabs" id="vTabs" style="margin-bottom:14px"></div>
+<div id="content"></div>
+<div class="ft">注：收缩压 ≥140 或舒张压 ≥90 mmHg 为高血压标准（中国/WHO）。部分日期数据因墨渍或未测量而缺失。</div>
 </div>
-
 <script>
-const RAW=[
-  {day:1,m:[[118,82],[89,66],[96,67]],n:[[125,76],[118,73],[128,82]],e:[[114,80],[109,62],[92,58]]},
-  {day:2,m:[[97,69],[111,77],[113,77]],n:[[134,91],[148,91],[135,87]],e:[[97,62],[109,71],[84,57]]},
-  {day:3,m:[[123,88],[125,85],[121,75]],n:[[149,96],[151,98],[153,96]],e:[[113,63],[94,63],[75,54]]},
-  {day:4,m:[[113,82],[95,63],[100,75]],n:[[144,90],[145,92],[131,85]],e:[[89,62],[100,73],[113,71]]},
-  {day:5,m:[[90,63],[89,61],[85,60]],n:null,e:[[72,50],[87,54],[84,55]]},
-  {day:6,m:[[118,79],[112,76],[105,73]],n:[[107,73],[112,74],[115,72]],e:[[87,56],[90,58],[89,56]]},
-  {day:7,m:[[109,75],[112,76],[116,78]],n:[[126,80],[117,73],[115,75]],e:[[137,89],[108,76],[125,87]]},
-  {day:8,m:[[115,75],[110,72],[104,74]],n:[[106,70],[109,68],[106,70]],e:[[71,47],[94,55],[88,54]]},
-  {day:9,m:[[111,76],[108,74],[110,73]],n:[[102,63],[109,66],[129,77]],e:[[126,80],[122,78],[120,78]]},
-  {day:10,m:[[138,84],[131,86],[126,82]],n:[[106,70],[87,60],[84,56]],e:[[79,53],[82,51],[84,54]]},
-  {day:11,m:[[114,78],[102,71],[115,79]],n:[[150,92],[137,78],[144,91]],e:[[94,59],[83,57],[87,57]]},
-  {day:12,m:[[120,79],[89,65],[91,63]],n:[[116,67],[117,69],[89,58]],e:[[95,63],[100,63],[98,61]]},
-  {day:13,m:[[136,91],[122,82],[83,69]],n:[[130,88],[132,78],[127,79]],e:[[70,48],[75,51],[80,53]]},
-  {day:14,m:[[129,83],[137,90],[135,86]],n:[[124,81],[123,80],[130,82]],e:[[88,58],[90,58],[95,60]]},
-  {day:15,m:[[113,79],[128,82],[113,75]],n:[[145,91],[138,90],[128,82]],e:[[85,57],[79,51],[81,53]]},
-  {day:16,m:[[120,91],[138,84],[137,95]],n:[[128,85],[96,68],[99,68]],e:[[123,82],[139,91],[121,82]]},
-  {day:17,m:[[144,94],[141,91],[142,88]],n:[[140,87],[113,76],[137,85]],e:[[73,49],[79,51],[77,48]]},
-  {day:18,m:[[109,70],[107,72],[93,61]],n:[[139,88],[128,81],[109,75]],e:[[81,55],[92,62],[96,61]]},
-  {day:19,m:[[119,79],[116,76],[119,74]],n:[[117,75],[114,73],[95,64]],e:[[74,49],[77,53],[91,55]]},
-  {day:20,m:[[95,61],[90,62],[93,62]],n:[[91,64],[88,61],[87,63]],e:[[83,54],[82,52],[84,56]]},
-  {day:21,m:[[107,71],[105,69],[105,71]],n:[[139,89],[140,85],[132,83]],e:[[126,80],[89,63],[87,61]]},
-  {day:22,m:[[122,84],[131,93],[122,86]],n:[[120,84],[122,84],[119,80]],e:[[71,55],[69,44],[73,47]]},
-  {day:23,m:[[104,67],[106,70],[100,70]],n:[[110,74],[112,72],[97,60]],e:[[139,94],[150,73],[95,64]]},
-  {day:24,m:[[137,89],[112,76],[118,74]],n:[[139,82],[133,82],[117,78]],e:[[101,69],[116,73],[98,64]]},
-  {day:25,m:[[151,100],[145,98],[132,91]],n:[[152,93],[119,81],[117,78]],e:[[93,69],[86,56],[83,56]]},
-  {day:26,m:[[121,90],[125,89],[108,76]],n:[[94,60],[96,62],[93,60]],e:[[71,49],[77,50],[83,52]]},
-  {day:27,m:[[97,67],[101,70],[97,67]],n:[[99,70],[107,71],[105,68]],e:[[81,57],[84,58],[83,59]]},
-  {day:28,m:[[115,80],[113,71],[106,67]],n:[[139,80],[115,71],[119,75]],e:[[76,52],[91,60],[88,56]]},
-  {day:29,m:[[136,92],[118,78],[116,78]],n:[[142,92],[145,87],[142,97]],e:[[125,82],[103,64],[111,77]]},
-  {day:30,m:null,n:[[129,86],[150,89],[173,95]],e:[[125,82],[114,71],[100,69]]},
+// ========== DATA ==========
+// 后续新增月份只需在此数组末尾 push 一个 {id, label, days, data} 对象
+const ALL_MONTHS = [
+{id:'apr', label:'四月', days:30, data:[
+{day:1,m:[[118,82],[89,66],[96,67]],n:[[125,76],[118,73],[128,82]],e:[[114,80],[109,62],[92,58]]},
+{day:2,m:[[97,69],[111,77],[113,77]],n:[[134,91],[148,91],[135,87]],e:[[97,62],[109,71],[84,57]]},
+{day:3,m:[[123,88],[125,85],[121,75]],n:[[149,96],[151,98],[153,96]],e:[[113,63],[94,63],[75,54]]},
+{day:4,m:[[113,82],[95,63],[100,75]],n:[[144,90],[145,92],[131,85]],e:[[89,62],[100,73],[113,71]]},
+{day:5,m:[[90,63],[89,61],[85,60]],n:null,e:[[72,50],[87,54],[84,55]]},
+{day:6,m:[[118,79],[112,76],[105,73]],n:[[107,73],[112,74],[115,72]],e:[[87,56],[90,58],[89,56]]},
+{day:7,m:[[109,75],[112,76],[116,78]],n:[[126,80],[117,73],[115,75]],e:[[137,89],[108,76],[125,87]]},
+{day:8,m:[[115,75],[110,72],[104,74]],n:[[106,70],[109,68],[106,70]],e:[[71,47],[94,55],[88,54]]},
+{day:9,m:[[111,76],[108,74],[110,73]],n:[[102,63],[109,66],[129,77]],e:[[126,80],[122,78],[120,78]]},
+{day:10,m:[[138,84],[131,86],[126,82]],n:[[106,70],[87,60],[84,56]],e:[[79,53],[82,51],[84,54]]},
+{day:11,m:[[114,78],[102,71],[115,79]],n:[[150,92],[137,78],[144,91]],e:[[94,59],[83,57],[87,57]]},
+{day:12,m:[[120,79],[89,65],[91,63]],n:[[116,67],[117,69],[89,58]],e:[[95,63],[100,63],[98,61]]},
+{day:13,m:[[136,91],[122,82],[83,69]],n:[[130,88],[132,78],[127,79]],e:[[70,48],[75,51],[80,53]]},
+{day:14,m:[[129,83],[137,90],[135,86]],n:[[124,81],[123,80],[130,82]],e:[[88,58],[90,58],[95,60]]},
+{day:15,m:[[113,79],[128,82],[113,75]],n:[[145,91],[138,90],[128,82]],e:[[85,57],[79,51],[81,53]]},
+{day:16,m:[[120,91],[138,84],[137,95]],n:[[128,85],[96,68],[99,68]],e:[[123,82],[139,91],[121,82]]},
+{day:17,m:[[144,94],[141,91],[142,88]],n:[[140,87],[113,76],[137,85]],e:[[73,49],[79,51],[77,48]]},
+{day:18,m:[[109,70],[107,72],[93,61]],n:[[139,88],[128,81],[109,75]],e:[[81,55],[92,62],[96,61]]},
+{day:19,m:[[119,79],[116,76],[119,74]],n:[[117,75],[114,73],[95,64]],e:[[74,49],[77,53],[91,55]]},
+{day:20,m:[[95,61],[90,62],[93,62]],n:[[91,64],[88,61],[87,63]],e:[[83,54],[82,52],[84,56]]},
+{day:21,m:[[107,71],[105,69],[105,71]],n:[[139,89],[140,85],[132,83]],e:[[126,80],[89,63],[87,61]]},
+{day:22,m:[[122,84],[131,93],[122,86]],n:[[120,84],[122,84],[119,80]],e:[[71,55],[69,44],[73,47]]},
+{day:23,m:[[104,67],[106,70],[100,70]],n:[[110,74],[112,72],[97,60]],e:[[139,94],[150,73],[95,64]]},
+{day:24,m:[[137,89],[112,76],[118,74]],n:[[139,82],[133,82],[117,78]],e:[[101,69],[116,73],[98,64]]},
+{day:25,m:[[151,100],[145,98],[132,91]],n:[[152,93],[119,81],[117,78]],e:[[93,69],[86,56],[83,56]]},
+{day:26,m:[[121,90],[125,89],[108,76]],n:[[94,60],[96,62],[93,60]],e:[[71,49],[77,50],[83,52]]},
+{day:27,m:[[97,67],[101,70],[97,67]],n:[[99,70],[107,71],[105,68]],e:[[81,57],[84,58],[83,59]]},
+{day:28,m:[[115,80],[113,71],[106,67]],n:[[139,80],[115,71],[119,75]],e:[[76,52],[91,60],[88,56]]},
+{day:29,m:[[136,92],[118,78],[116,78]],n:[[142,92],[145,87],[142,97]],e:[[125,82],[103,64],[111,77]]},
+{day:30,m:null,n:[[129,86],[150,89],[173,95]],e:[[125,82],[114,71],[100,69]]},
+]},
+{id:'may', label:'五月', days:31, data:[
+{day:1,m:[[147,97],[122,83],[134,90]],n:[[124,78],[82,59],[105,63]],e:[[83,60],[70,45],[91,61]]},
+{day:2,m:[[94,65],[88,63],[109,70]],n:[[147,85],[115,69],[125,77]],e:[[152,95],[89,62],[105,69]]},
+{day:3,m:[[119,82],[118,78],[113,75]],n:[[128,88],[120,77],[103,63]],e:[[94,61],[100,62],[104,65]]},
+{day:4,m:[[85,57],[96,65],[89,55]],n:[[133,86],[114,74],[108,73]],e:[[84,53],[82,53],[76,49]]},
+{day:5,m:[[97,63],[90,60],[88,68]],n:[[134,81],[113,74],[111,73]],e:[[98,65],[107,75],[109,70]]},
+{day:6,m:[[133,84],[132,81],[125,85]],n:[[136,90],[130,80],[132,82]],e:[[79,55],[84,57],[89,55]]},
+{day:7,m:[[131,91],[96,65],[99,69]],n:[[112,73],[98,71],[115,67]],e:[[108,72],[84,57],[83,55]]},
+{day:8,m:[[105,67],[92,63],[90,60]],n:[[133,82],[128,83],[121,79]],e:[[77,53],[75,61],[79,62]]},
+{day:9,m:[[95,66],[103,73],[101,69]],n:[[110,79],[110,75],[125,78]],e:[[84,58],[87,57],[88,55]]},
+{day:10,m:[[135,89],[131,88],[143,97]],n:[[124,79],[111,73],[108,72]],e:[[134,87],[119,76],[109,68]]},
+{day:11,m:[[125,82],[132,84],[139,88]],n:[[137,89],[128,73],[133,88]],e:[[79,52],[90,61],[76,62]]},
+{day:12,m:[[150,101],[143,97],[116,77]],n:null,e:[[99,69],[103,63],[97,72]]},
+{day:13,m:[[116,80],[129,79],[123,83]],n:null,e:[[117,83],[99,68],[124,83]]},
+{day:14,m:[[130,93],[119,80],[106,74]],n:null,e:[[84,60],[90,58],[79,57]]},
+{day:15,m:[[136,93],[140,94],[129,91]],n:null,e:[[109,75],[92,63],[82,58]]},
+{day:16,m:[[104,69],[105,74],[128,82]],n:null,e:[[74,49],[92,62],[92,54]]},
+{day:17,m:[[108,74],[119,83],[123,70]],n:[[137,95],[112,77],[114,84]],e:[[76,55],[79,55],[92,61]]},
+{day:18,m:[[109,71],[82,57],[103,73]],n:[[90,63],[93,65],[86,58]],e:[[98,66],[99,66],[116,76]]},
+{day:19,m:[[101,65],[106,75],[87,61]],n:null,e:[[77,56],[84,56],[84,61]]},
+{day:20,m:[[121,88],[137,80],[131,81]],n:[[128,87],[105,70],[136,82]],e:[[72,53],[93,52],[84,68]]},
+{day:21,m:[[129,90],[117,79],[139,97]],n:[[137,99],[105,70],[119,78]],e:[[120,85],[124,79],[95,61]]},
+{day:22,m:[[102,73],[99,72],[125,80]],n:[[79,58],[100,67],[101,74]],e:[[82,55],[94,63],[92,60]]},
+{day:23,m:[[104,77],[85,60],[95,67]],n:[[98,65],[81,66],[88,60]],e:[[95,67],[82,57],[75,54]]},
+{day:24,m:[[111,83],[90,59],[99,72]],n:[[99,72],[105,74],[93,63]],e:[[95,54],[87,60],[89,54]]},
+{day:25,m:[[118,80],[101,64],[105,73]],n:[[123,90],[128,84],[113,81]],e:[[102,73],[124,83],[127,79]]},
+{day:26,m:[[104,71],[117,85],[91,70]],n:[[99,71],[107,74],[96,69]],e:[[87,64],[104,74],[94,63]]},
+{day:27,m:[[121,79],[102,78],[120,85]],n:[[100,66],[73,58],[88,61]],e:[[100,70],[121,74],[116,73]]},
+{day:28,m:[[150,96],[146,93],[140,89]],n:[[100,67],[106,78],[129,94]],e:[[108,76],[104,62],[124,85]]},
+{day:29,m:[[116,83],[115,77],[120,77]],n:null,e:null},
+{day:30,m:[[144,81],[142,85],[140,86]],n:[[168,73],[110,73],[116,76]],e:[[76,52],[77,60],[89,62]]},
+{day:31,m:[[150,91],[154,92],[158,95]],n:null,e:[[103,71],[100,58],[79,54]]},
+]},
+// ↓↓↓ 后续新增月份在这里添加 ↓↓↓
+{id:'jun', label:'六月', days:30, data:[
+{day:1,m:[[120,78],[106,71],[120,89]],n:[[110,67],[105,49],[101,67]],e:[[90,60],[95,62],[100,65]]},
+{day:2,m:[[135,87],[122,80],[135,91]],n:[[131,91],[133,86],[110,71]],e:[[105,72],[107,73],[107,70]]},
+{day:3,m:[[140,87],[127,85],[124,89]],n:null,e:[[70,48],[81,55],[73,47]]},
+{day:4,m:[[97,60],[99,61],[112,68]],n:[[119,73],[117,75],[129,84]],e:[[91,59],[89,58],[84,55]]},
+{day:5,m:[[124,91],[133,82],[126,81]],n:[[133,83],[135,84],[133,85]],e:[[99,70],[112,70],[114,68]]},
+{day:6,m:[[145,96],[124,84],[123,84]],n:[[132,85],[114,77],[118,77]],e:[[103,64],[105,67],[116,77]]},
+{day:7,m:[[116,74],[118,76],[115,74]],n:null,e:[[69,48],[75,51],[76,49]]},
+{day:8,m:[[112,77],[110,78],[108,76]],n:[[107,72],[111,70],[130,79]],e:[[107,67],[87,56],[89,55]]},
+{day:9,m:[[146,87],[112,76],[106,73]],n:[[143,87],[144,74],[97,62]],e:[[113,73],[111,72],[113,71]]},
+{day:10,m:[[128,84],[127,84],[134,85]],n:[[174,106],[153,78],[149,102]],e:[[95,69],[87,58],[91,57]]},
+{day:11,m:[[125,84],[113,75],[107,73]],n:null,e:null},
+]},
 ];
+
+// ========== UTILS ==========
+const PN={morning:'早上',noon:'中午',evening:'晚上'};
+const PC={morning:'#d97706',noon:'#dc2626',evening:'#2563eb'};
+const PCL={morning:'#fbbf24',noon:'#f87171',evening:'#93c5fd'};
 
 function avg(a){if(!a||!a.length)return[null,null];return[Math.round(a.reduce((s,v)=>s+v[0],0)/a.length),Math.round(a.reduce((s,v)=>s+v[1],0)/a.length)];}
-function bpCat(s,d){if(s>=180||d>=120)return{l:"高血压危象",c:"#7f1d1d",bg:"#fef2f2"};if(s>=140||d>=90)return{l:"高血压",c:"#dc2626",bg:"#fef2f2"};if(s>=130||d>=80)return{l:"血压偏高",c:"#d97706",bg:"#fffbeb"};if(s>=90&&d>=60)return{l:"正常",c:"#16a34a",bg:"#f0fdf4"};return{l:"偏低",c:"#2563eb",bg:"#eff6ff"};}
+function bpCat(s,d){if(s>=180||d>=120)return{l:'高血压危象',c:'#7f1d1d',bg:'#fef2f2'};if(s>=140||d>=90)return{l:'高血压',c:'#dc2626',bg:'#fef2f2'};if(s>=130||d>=80)return{l:'血压偏高',c:'#d97706',bg:'#fffbeb'};if(s>=90&&d>=60)return{l:'正常',c:'#16a34a',bg:'#f0fdf4'};return{l:'偏低',c:'#2563eb',bg:'#eff6ff'};}
+function calcStats(data){
+  const byP={morning:[],noon:[],evening:[]},all=[];
+  data.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(({k,d})=>{if(d)d.forEach(v=>{byP[k].push(v);all.push(v);});});});
+  function cs(a){if(!a.length)return null;const ss=a.map(v=>v[0]),ds=a.map(v=>v[1]);return{avgS:Math.round(ss.reduce((a,b)=>a+b,0)/ss.length),avgD:Math.round(ds.reduce((a,b)=>a+b,0)/ds.length),maxS:Math.max(...ss),minS:Math.min(...ss),maxD:Math.max(...ds),minD:Math.min(...ds),hiS:ss.filter(s=>s>=140).length,hiD:ds.filter(d=>d>=90).length,n:ss.length};}
+  return{all:cs(all),morning:cs(byP.morning),noon:cs(byP.noon),evening:cs(byP.evening)};
+}
 
-// compute stats
-const byP={morning:[],noon:[],evening:[]}, all=[];
-RAW.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(({k,d})=>{if(d)d.forEach(v=>{byP[k].push(v);all.push(v);});});});
-function calcS(a){const ss=a.map(v=>v[0]),ds=a.map(v=>v[1]);return{avgS:Math.round(ss.reduce((a,b)=>a+b,0)/ss.length),avgD:Math.round(ds.reduce((a,b)=>a+b,0)/ds.length),maxS:Math.max(...ss),minS:Math.min(...ss),maxD:Math.max(...ds),minD:Math.min(...ds),hiS:ss.filter(s=>s>=140).length,hiD:ds.filter(d=>d>=90).length,n:ss.length};}
-const st={all:calcS(all),morning:calcS(byP.morning),noon:calcS(byP.noon),evening:calcS(byP.evening)};
-const oc=bpCat(st.all.avgS,st.all.avgD);
+// ========== CHART HELPERS ==========
+let charts={};
+function kill(){Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};}
 
-// header
-document.getElementById('headerSub').textContent=`4月1日–30日 · 每日三次 · 每次三测 · 共 ${st.all.n} 次测量`;
-const hb=document.getElementById('headerBadge');
-hb.textContent=`月均 ${st.all.avgS}/${st.all.avgD} · ${oc.l}`;
-hb.style.background=oc.bg; hb.style.color=oc.c; hb.style.border=`1px solid ${oc.c}22`;
-
-// period cards
-const pNames={morning:'早上',noon:'中午',evening:'晚上'}, pColors={morning:'#d97706',noon:'#dc2626',evening:'#2563eb'};
-let pcHTML='';
-['morning','noon','evening'].forEach(k=>{const s=st[k],cat=bpCat(s.avgS,s.avgD);
-pcHTML+=`<div class="period-card" style="border-left:4px solid ${pColors[k]}"><div class="label"><span>${pNames[k]}</span><span style="color:${cat.c};font-weight:600;font-size:11px">${cat.l}</span></div><div class="val">${s.avgS}<span>/</span>${s.avgD}</div><div class="detail">收缩 ${s.minS}–${s.maxS} · 舒张 ${s.minD}–${s.maxD} · 高压${s.hiS}次</div></div>`;
-});
-document.getElementById('periodCards').innerHTML=pcHTML;
-
-// stat cards
-const scData=[
-  {l:'总测量次数',v:st.all.n,u:'次',c:'#1e293b'},
-  {l:'收缩压≥140',v:st.all.hiS,u:`次 (${Math.round(st.all.hiS/st.all.n*100)}%)`,c:'#dc2626'},
-  {l:'舒张压≥90',v:st.all.hiD,u:`次 (${Math.round(st.all.hiD/st.all.n*100)}%)`,c:'#d97706'},
-  {l:'平均脉压差',v:st.all.avgS-st.all.avgD,u:'mmHg',c:'#2563eb'},
-];
-document.getElementById('statCards').innerHTML=scData.map(s=>`<div class="stat-card"><div class="sl">${s.l}</div><div class="sv" style="color:${s.c}">${s.v}<small>${s.u}</small></div></div>`).join('');
-
-// tabs
-document.querySelectorAll('#tabs button').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('v-'+btn.dataset.v).classList.add('active');
-  });
-});
-
-// chart data
-const days=RAW.map(r=>r.day);
-const mSys=[],mDia=[],nSys=[],nDia=[],eSys=[],eDia=[];
-RAW.forEach(r=>{
-  const[ms,md]=avg(r.m),[ns,nd]=avg(r.n),[es,ed]=avg(r.e);
-  mSys.push(ms);mDia.push(md);nSys.push(ns);nDia.push(nd);eSys.push(es);eDia.push(ed);
-});
-
-const dashLine=[6,4], dotLine=[3,3];
-const chartOpts = (yMin,yMax,extra={}) => ({
-  responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-  plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:14,font:{size:11}}},...(extra.plugins||{})},
-  scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{min:yMin,max:yMax,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}, ...(extra.scales||{})},
-  elements:{point:{radius:3,hoverRadius:5},line:{tension:0.3}}, ...(extra.root||{}),
-});
-
-// ===== Trend chart =====
-const ctxT=document.getElementById('cTrend');
-ctxT.parentElement.style.height='380px';
-new Chart(ctxT,{type:'line',data:{labels:days.map(d=>`${d}日`),datasets:[
-  {label:'早上·收缩压',data:mSys,borderColor:'#d97706',backgroundColor:'#d97706',borderWidth:2,spanGaps:true},
-  {label:'中午·收缩压',data:nSys,borderColor:'#dc2626',backgroundColor:'#dc2626',borderWidth:2,spanGaps:true},
-  {label:'晚上·收缩压',data:eSys,borderColor:'#2563eb',backgroundColor:'#2563eb',borderWidth:2,spanGaps:true},
-  {label:'早上·舒张压',data:mDia,borderColor:'#fbbf24',backgroundColor:'#fbbf24',borderWidth:1.5,borderDash:dashLine,spanGaps:true},
-  {label:'中午·舒张压',data:nDia,borderColor:'#f87171',backgroundColor:'#f87171',borderWidth:1.5,borderDash:dashLine,spanGaps:true},
-  {label:'晚上·舒张压',data:eDia,borderColor:'#93c5fd',backgroundColor:'#93c5fd',borderWidth:1.5,borderDash:dashLine,spanGaps:true},
-]},options:{...chartOpts(35,180),plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:14,font:{size:11}}},
-  annotation:undefined,
-  tooltip:{callbacks:{afterBody:(ctx)=>{
-    const i=ctx[0].dataIndex; const r=RAW[i]; if(!r)return'';
-    let s=''; [{k:'morning',l:'早上',d:r.m},{k:'noon',l:'中午',d:r.n},{k:'evening',l:'晚上',d:r.e}].forEach(p=>{
-      s+='\n'+p.l+': '; if(p.d)p.d.forEach((v,j)=>{s+=v[0]+'/'+v[1]+(j<2?' · ':'');}); else s+='—';
-    }); return s;
-  }}}
-}}});
-
-// draw reference lines via plugin
-const refLinePlugin = {
-  id:'refLines',
+const refLinePlugin={
+  id:'bpRef',
   afterDraw(chart){
-    const {ctx,scales:{y},chartArea:{left,right}}=chart;
-    [{v:140,c:'#dc2626',t:'140 高压'},{v:90,c:'#d97706',t:'90 舒张'}].forEach(({v,c,t})=>{
+    if(chart.config.type==='bar') return;
+    const y=chart.scales?.y;
+    const area=chart.chartArea;
+    if(!y||!area) return;
+    const ctx=chart.ctx;
+    const lbl={140:'⚠ 高压',90:'舒张警戒',60:'⚠ 低压'};
+    [{v:140,c:'#dc2626',w:1,d:[6,4]},{v:90,c:'#d97706',w:1,d:[6,4]},{v:60,c:'#e11d9c',w:2.5,d:[]}].forEach(({v,c,w,d})=>{
+      if(v<y.min||v>y.max) return;
       const yy=y.getPixelForValue(v);
-      ctx.save(); ctx.setLineDash([6,4]); ctx.strokeStyle=c; ctx.lineWidth=1.2;
-      ctx.beginPath(); ctx.moveTo(left,yy); ctx.lineTo(right,yy); ctx.stroke();
-      ctx.fillStyle=c; ctx.font='10px Inter,sans-serif'; ctx.textAlign='right'; ctx.fillText(t,right-4,yy-4);
-      ctx.restore();
+      ctx.save();ctx.setLineDash(d);ctx.strokeStyle=c;ctx.lineWidth=w;
+      ctx.beginPath();ctx.moveTo(area.left,yy);ctx.lineTo(area.right,yy);ctx.stroke();
+      ctx.fillStyle=c;ctx.font=v===60?'bold 11px sans-serif':'10px sans-serif';ctx.textAlign='right';
+      ctx.fillText((lbl[v]||'')+' '+v,area.right-4,yy-4);ctx.restore();
     });
   }
 };
 Chart.register(refLinePlugin);
 
-// ===== Detail chart =====
-const detailRows=[], detailColors=[];
-RAW.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(p=>{
-  if(!p.d)return; p.d.forEach((v,i)=>{
-    detailRows.push({day:r.day,period:p.k,sys:v[0],dia:v[1],label:`${r.day}日${pNames[p.k]}${i+1}`});
-    detailColors.push(pColors[p.k]);
+function lineOpts(yMin,yMax){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:10},maxRotation:0},grid:{display:false}},y:{min:yMin,max:yMax,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}},elements:{line:{tension:.3}}};}
+
+// ========== STATE ==========
+let curMonth=ALL_MONTHS[0].id, curView='trend';
+
+// ========== RENDER ==========
+function render(){
+  kill();
+  if(curMonth==='cmp'){renderCompare();return;}
+  const M=ALL_MONTHS.find(m=>m.id===curMonth);
+  if(!M)return;
+  const data=M.data, st=calcStats(data), oc=bpCat(st.all.avgS,st.all.avgD);
+
+  document.getElementById('hSub').textContent=`${M.label} · ${M.days}天 · 共${st.all.n}次测量`;
+  document.getElementById('hBadge').innerHTML=`<span class="badge" style="background:${oc.bg};color:${oc.c};border:1px solid ${oc.c}22">月均 ${st.all.avgS}/${st.all.avgD} · ${oc.l}</span>`;
+
+  let pc='';
+  ['morning','noon','evening'].forEach(k=>{const s=st[k];if(!s)return;const cat=bpCat(s.avgS,s.avgD);
+    pc+=`<div class="pc" style="border-left:4px solid ${PC[k]}"><div class="lb"><span>${PN[k]}</span><span style="color:${cat.c};font-weight:600;font-size:11px">${cat.l}</span></div><div class="vl">${s.avgS}<span>/</span>${s.avgD}</div><div class="dt">范围 ${s.minS}–${s.maxS}/${s.minD}–${s.maxD} · ≥140次${s.hiS}</div></div>`;
   });
-});});
-document.getElementById('detailTitle').textContent=`逐次血压记录（共${detailRows.length}次）`;
+  document.getElementById('pCards').innerHTML=pc;
 
-const ctxD=document.getElementById('cDetail');
-ctxD.parentElement.style.height='380px';
-new Chart(ctxD,{type:'line',data:{labels:detailRows.map((_,i)=>i),datasets:[
-  {label:'收缩压',data:detailRows.map(r=>r.sys),borderColor:'rgba(148,163,184,0.4)',borderWidth:0.8,pointBackgroundColor:detailColors,pointBorderColor:detailColors,pointRadius:2.5},
-  {label:'舒张压',data:detailRows.map(r=>r.dia),borderColor:'rgba(203,213,225,0.3)',borderWidth:0.5,pointBackgroundColor:detailRows.map(r=>({morning:'#fbbf24',noon:'#f87171',evening:'#93c5fd'}[r.period])),pointBorderColor:detailRows.map(r=>({morning:'#fbbf24',noon:'#f87171',evening:'#93c5fd'}[r.period])),pointRadius:2},
-]},options:{...chartOpts(35,180),plugins:{legend:{display:false},tooltip:{callbacks:{title:(ctx)=>detailRows[ctx[0].dataIndex]?.label||'',label:(ctx)=>`${ctx.dataset.label}: ${ctx.raw} mmHg`}}},scales:{x:{display:false},y:{min:35,max:180,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}}}});
-
-// ===== Pulse pressure =====
-const mPP=mSys.map((s,i)=>s!=null&&mDia[i]!=null?s-mDia[i]:null);
-const nPP=nSys.map((s,i)=>s!=null&&nDia[i]!=null?s-nDia[i]:null);
-const ePP=eSys.map((s,i)=>s!=null&&eDia[i]!=null?s-eDia[i]:null);
-const ctxP=document.getElementById('cPulse');
-ctxP.parentElement.style.height='320px';
-const bandPlugin={id:'ppBand',beforeDraw(chart){
-  const {ctx,scales:{y},chartArea:{left,right}}=chart;
-  const y1=y.getPixelForValue(40),y2=y.getPixelForValue(30);
-  ctx.save();ctx.fillStyle='rgba(22,163,74,0.06)';ctx.fillRect(left,y1,right-left,y2-y1);ctx.restore();
-}};
-new Chart(ctxP,{type:'line',data:{labels:days.map(d=>`${d}日`),datasets:[
-  {label:'早上',data:mPP,borderColor:'#d97706',backgroundColor:'#d97706',borderWidth:2,spanGaps:true},
-  {label:'中午',data:nPP,borderColor:'#dc2626',backgroundColor:'#dc2626',borderWidth:2,spanGaps:true},
-  {label:'晚上',data:ePP,borderColor:'#2563eb',backgroundColor:'#2563eb',borderWidth:2,spanGaps:true},
-]},options:chartOpts(10,80),plugins:[bandPlugin]});
-
-// ===== Weekly =====
-const weeks=[{l:'第1周(1-7)',d:[1,2,3,4,5,6,7]},{l:'第2周(8-14)',d:[8,9,10,11,12,13,14]},{l:'第3周(15-21)',d:[15,16,17,18,19,20,21]},{l:'第4周(22-28)',d:[22,23,24,25,26,27,28]},{l:'第5周(29-30)',d:[29,30]}];
-const wData=weeks.map(w=>{const a=[];w.d.forEach(d=>{const r=RAW.find(x=>x.day===d);if(r)[r.m,r.n,r.e].forEach(arr=>{if(arr)arr.forEach(v=>a.push(v));});});const ss=a.map(v=>v[0]),ds=a.map(v=>v[1]);return{l:w.l,s:Math.round(ss.reduce((a,b)=>a+b,0)/ss.length),d:Math.round(ds.reduce((a,b)=>a+b,0)/ds.length)};});
-const ctxW=document.getElementById('cWeekly');
-ctxW.parentElement.style.height='300px';
-new Chart(ctxW,{type:'bar',data:{labels:wData.map(w=>w.l),datasets:[
-  {label:'平均收缩压',data:wData.map(w=>w.s),backgroundColor:'#3b82f6',borderRadius:4,barPercentage:0.6},
-  {label:'平均舒张压',data:wData.map(w=>w.d),backgroundColor:'#93c5fd',borderRadius:4,barPercentage:0.6},
-]},options:chartOpts(50,140)});
-
-// ===== Table =====
-let tHTML='<thead><tr><th rowspan="2" style="border-bottom:2px solid #1e293b;width:36px">日</th>';
-['早上','中午','晚上'].forEach((l,i)=>{const c=['#d97706','#dc2626','#2563eb'][i];tHTML+=`<th colspan="3" style="color:${c};border-bottom:1px solid #f1f5f9">${l}</th>`;});
-tHTML+='</tr><tr>';for(let g=0;g<3;g++)for(let n=1;n<=3;n++)tHTML+=`<th style="font-size:10px;color:#94a3b8;border-bottom:1px solid #e2e8f0">#${n}</th>`;
-tHTML+='</tr></thead><tbody>';
-RAW.forEach(r=>{
-  tHTML+=`<tr><td style="font-weight:700;font-size:13px">${r.day}</td>`;
-  [r.m,r.n,r.e].forEach(period=>{
-    if(period){period.forEach(v=>{
-      let cls='';if(v[0]>=140)cls='hi';else if(v[0]<80)cls='lo';
-      tHTML+=`<td class="${cls}">${v[0]}/${v[1]}</td>`;
-    });}else{for(let i=0;i<3;i++)tHTML+='<td class="na">—</td>';}
+  let sc='';
+  [{l:'总测量',v:st.all.n,u:'次',c:'#1e293b'},{l:'收缩压≥140',v:st.all.hiS,u:`(${Math.round(st.all.hiS/st.all.n*100)}%)`,c:'#dc2626'},{l:'舒张压≥90',v:st.all.hiD,u:`(${Math.round(st.all.hiD/st.all.n*100)}%)`,c:'#d97706'},{l:'脉压差均值',v:st.all.avgS-st.all.avgD,u:'mmHg',c:'#2563eb'}].forEach(s=>{
+    sc+=`<div class="sc"><div class="sl">${s.l}</div><div class="sv" style="color:${s.c}">${s.v}<small>${s.u}</small></div></div>`;
   });
-  tHTML+='</tr>';
-});
-tHTML+='</tbody>';
-document.getElementById('dataTable').innerHTML=tHTML;
+  document.getElementById('sCards').innerHTML=sc;
+  renderView();
+}
+
+function renderView(){
+  if(curMonth==='cmp')return;
+  const M=ALL_MONTHS.find(m=>m.id===curMonth);
+  if(!M)return;
+  kill();
+  const data=M.data, ct=document.getElementById('content');
+  if(curView==='trend') buildTrend(data,ct);
+  else if(curView==='detail') buildDetail(data,ct);
+  else if(curView==='pulse') buildPulse(data,ct);
+  else if(curView==='weekly') buildWeekly(data,M,ct);
+  else if(curView==='table') buildTable(data,ct);
+}
+
+// ========== VIEWS ==========
+function buildTrend(data,ct){
+  ct.innerHTML='<div class="cb"><h3>每日平均血压趋势</h3><div class="ds">实线=收缩压 · 虚线=舒张压 · 悬停查看原始数据</div><div style="position:relative;height:380px"><canvas id="cv"></canvas></div></div>';
+  const lb=[],mS=[],mD=[],nS=[],nD=[],eS=[],eD=[];
+  data.forEach(r=>{lb.push(r.day+'');const[ms,md]=avg(r.m),[ns,nd]=avg(r.n),[es,ed]=avg(r.e);mS.push(ms);mD.push(md);nS.push(ns);nD.push(nd);eS.push(es);eD.push(ed);});
+  const opts=lineOpts(35,180);
+  opts.plugins.tooltip={callbacks:{afterBody:ctx=>{const i=ctx[0].dataIndex,r=data[i];if(!r)return'';let s='';[{l:'早',d:r.m},{l:'午',d:r.n},{l:'晚',d:r.e}].forEach(p=>{s+='\n'+p.l+': ';if(p.d)p.d.forEach((v,j)=>{s+=v[0]+'/'+v[1]+(j<p.d.length-1?' · ':'');});else s+='—';});return s;}}};
+  charts.cv=new Chart(document.getElementById('cv'),{type:'line',data:{labels:lb,datasets:[
+    {label:'早上·收缩',data:mS,borderColor:PC.morning,backgroundColor:PC.morning,borderWidth:2,spanGaps:true,pointRadius:2.5},
+    {label:'中午·收缩',data:nS,borderColor:PC.noon,backgroundColor:PC.noon,borderWidth:2,spanGaps:true,pointRadius:2.5},
+    {label:'晚上·收缩',data:eS,borderColor:PC.evening,backgroundColor:PC.evening,borderWidth:2,spanGaps:true,pointRadius:2.5},
+    {label:'早上·舒张',data:mD,borderColor:PCL.morning,backgroundColor:PCL.morning,borderWidth:1.2,borderDash:[5,3],spanGaps:true,pointRadius:2},
+    {label:'中午·舒张',data:nD,borderColor:PCL.noon,backgroundColor:PCL.noon,borderWidth:1.2,borderDash:[5,3],spanGaps:true,pointRadius:2},
+    {label:'晚上·舒张',data:eD,borderColor:PCL.evening,backgroundColor:PCL.evening,borderWidth:1.2,borderDash:[5,3],spanGaps:true,pointRadius:2},
+  ]},options:opts});
+}
+
+function buildDetail(data,ct){
+  const rows=[];data.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(p=>{if(!p.d)return;p.d.forEach((v,i)=>{rows.push({day:r.day,period:p.k,sys:v[0],dia:v[1],label:r.day+'日'+PN[p.k]+(i+1)});});});});
+  ct.innerHTML=`<div class="cb"><h3>逐次记录（共${rows.length}次）</h3><div class="ds">每个点=单次测量，颜色区分时段</div><div style="position:relative;height:380px"><canvas id="cv"></canvas></div><div class="lgr"><span><span class="d" style="background:#d97706"></span>早上</span><span><span class="d" style="background:#dc2626"></span>中午</span><span><span class="d" style="background:#2563eb"></span>晚上</span></div></div>`;
+  charts.cv=new Chart(document.getElementById('cv'),{type:'line',data:{labels:rows.map((_,i)=>i),datasets:[
+    {label:'收缩压',data:rows.map(r=>r.sys),borderColor:'rgba(148,163,184,0.3)',borderWidth:.8,pointBackgroundColor:rows.map(r=>PC[r.period]),pointBorderColor:rows.map(r=>PC[r.period]),pointRadius:2.5},
+    {label:'舒张压',data:rows.map(r=>r.dia),borderColor:'rgba(203,213,225,0.2)',borderWidth:.5,pointBackgroundColor:rows.map(r=>PCL[r.period]),pointBorderColor:rows.map(r=>PCL[r.period]),pointRadius:2},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:ctx=>rows[ctx[0].dataIndex]?.label||'',label:ctx=>`${ctx.dataset.label}: ${ctx.raw} mmHg`}}},scales:{x:{display:false},y:{min:35,max:180,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}},elements:{line:{tension:.2}}}});
+}
+
+function buildPulse(data,ct){
+  ct.innerHTML='<div class="cb"><h3>脉压差趋势</h3><div class="ds">脉压差=收缩压−舒张压 · 正常30–40（绿色区域）</div><div style="position:relative;height:320px"><canvas id="cv"></canvas></div></div>';
+  const lb=[],mP=[],nP=[],eP=[];
+  data.forEach(r=>{lb.push(r.day+'');const[ms,md]=avg(r.m),[ns,nd]=avg(r.n),[es,ed]=avg(r.e);mP.push(ms!=null&&md!=null?ms-md:null);nP.push(ns!=null&&nd!=null?ns-nd:null);eP.push(es!=null&&ed!=null?es-ed:null);});
+  const band={id:'ppB',beforeDraw(chart){const y=chart.scales?.y;const area=chart.chartArea;if(!y||!area)return;const ctx=chart.ctx;const y1=y.getPixelForValue(40),y2=y.getPixelForValue(30);ctx.save();ctx.fillStyle='rgba(22,163,74,0.08)';ctx.fillRect(area.left,y1,area.right-area.left,y2-y1);ctx.restore();}};
+  charts.cv=new Chart(document.getElementById('cv'),{type:'line',data:{labels:lb,datasets:[
+    {label:'早上',data:mP,borderColor:PC.morning,backgroundColor:PC.morning,borderWidth:2,spanGaps:true,pointRadius:3},
+    {label:'中午',data:nP,borderColor:PC.noon,backgroundColor:PC.noon,borderWidth:2,spanGaps:true,pointRadius:3},
+    {label:'晚上',data:eP,borderColor:PC.evening,backgroundColor:PC.evening,borderWidth:2,spanGaps:true,pointRadius:3},
+  ]},options:lineOpts(10,80),plugins:[band]});
+}
+
+function buildWeekly(data,M,ct){
+  ct.innerHTML='<div class="cb"><h3>周平均对比</h3><div class="ds">按周汇总的平均血压</div><div style="position:relative;height:300px"><canvas id="cv"></canvas></div></div>';
+  const weeks=[];for(let i=0;i<Math.ceil(M.days/7);i++){const s=i*7+1,e=Math.min(s+6,M.days);weeks.push({l:`W${i+1}(${s}-${e})`,days:Array.from({length:e-s+1},(_,j)=>s+j)});}
+  const wD=weeks.map(w=>{const a=[];w.days.forEach(d=>{const r=data.find(x=>x.day===d);if(r)[r.m,r.n,r.e].forEach(arr=>{if(arr)arr.forEach(v=>a.push(v));});});const ss=a.map(v=>v[0]),ds=a.map(v=>v[1]);return{l:w.l,s:ss.length?Math.round(ss.reduce((a,b)=>a+b,0)/ss.length):0,d:ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):0};});
+  charts.cv=new Chart(document.getElementById('cv'),{type:'bar',data:{labels:wD.map(w=>w.l),datasets:[
+    {label:'平均收缩压',data:wD.map(w=>w.s),backgroundColor:'#3b82f6',borderRadius:4,barPercentage:.6},
+    {label:'平均舒张压',data:wD.map(w=>w.d),backgroundColor:'#93c5fd',borderRadius:4,barPercentage:.6},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{min:50,max:145,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}}}});
+}
+
+function buildTable(data,ct){
+  let h='<div class="cb" style="overflow-x:auto"><table><thead><tr><th rowspan="2" style="border-bottom:2px solid #1e293b;width:32px">日</th>';
+  ['早上','中午','晚上'].forEach((l,i)=>{h+=`<th colspan="3" style="color:${[PC.morning,PC.noon,PC.evening][i]};border-bottom:1px solid #f1f5f9">${l}</th>`;});
+  h+='</tr><tr>';for(let g=0;g<3;g++)for(let n=1;n<=3;n++)h+=`<th style="font-size:10px;color:#94a3b8;border-bottom:1px solid #e2e8f0">#${n}</th>`;
+  h+='</tr></thead><tbody>';
+  data.forEach(r=>{h+=`<tr><td style="font-weight:700;font-size:13px">${r.day}</td>`;
+    [r.m,r.n,r.e].forEach(p=>{if(p){p.forEach(v=>{let c='';if(v[0]>=140)c='hi';else if(v[0]<80)c='lo';h+=`<td class="${c}">${v[0]}/${v[1]}</td>`;});}else{for(let i=0;i<3;i++)h+='<td class="na">—</td>';}});
+    h+='</tr>';});
+  h+='</tbody></table></div>';ct.innerHTML=h;
+}
+
+// ========== COMPARE ==========
+function renderCompare(){
+  document.getElementById('hSub').textContent='月度对比 · '+ALL_MONTHS.map(m=>m.label).join(' vs ');
+  document.getElementById('hBadge').innerHTML='';
+  document.getElementById('pCards').innerHTML='';
+
+  const stats=ALL_MONTHS.map(m=>({...m,...calcStats(m.data)}));
+  let sc='';
+  stats.forEach(s=>{
+    sc+=`<div class="sc"><div class="sl">${s.label}均值</div><div class="sv" style="color:#1e293b">${s.all.avgS}/${s.all.avgD}<small>mmHg</small></div></div>`;
+    sc+=`<div class="sc"><div class="sl">${s.label}高压率</div><div class="sv" style="color:#dc2626">${Math.round(s.all.hiS/s.all.n*100)}<small>%</small></div></div>`;
+  });
+  document.getElementById('sCards').innerHTML=sc;
+
+  let html='<div class="cb"><h3>连续日均趋势（全部月份）</h3><div class="ds">早中晚平均收缩压连续走势 · 实线=收缩压 · 虚线=舒张压 · 背景色区分月份</div><div style="position:relative;height:420px"><canvas id="cv0"></canvas></div></div>';
+  html+='<div class="cb"><h3>各月时段均值对比</h3><div class="ds">柱状图对比各月各时段的平均血压 · 数值标注在柱顶</div><div style="position:relative;height:360px"><canvas id="cv1"></canvas></div></div>';
+  document.getElementById('content').innerHTML=html;
+
+  // ===== continuous trend =====
+  const contLabels=[],contMS=[],contMD=[],contNS=[],contND=[],contES=[],contED=[];
+  const monthBounds=[];
+  let idx=0;
+  ALL_MONTHS.forEach(m=>{
+    const start=idx;
+    m.data.forEach(r=>{
+      contLabels.push(m.label.charAt(0)+'/'+r.day);
+      const[ms,md]=avg(r.m),[ns,nd]=avg(r.n),[es,ed]=avg(r.e);
+      contMS.push(ms);contMD.push(md);contNS.push(ns);contND.push(nd);contES.push(es);contED.push(ed);
+      idx++;
+    });
+    monthBounds.push({label:m.label,start,end:idx-1});
+  });
+  const monthBandPlugin={id:'mBand',beforeDraw(chart){
+    const area=chart.chartArea;const x=chart.scales?.x;if(!area||!x)return;
+    const ctx=chart.ctx;
+    const bandColors=['rgba(59,130,246,0.04)','rgba(249,115,22,0.04)','rgba(139,92,246,0.04)','rgba(6,182,212,0.04)'];
+    monthBounds.forEach((b,i)=>{
+      const x1=x.getPixelForValue(b.start), x2=x.getPixelForValue(b.end);
+      ctx.save();ctx.fillStyle=bandColors[i%4];ctx.fillRect(x1,area.top,x2-x1,area.bottom-area.top);
+      ctx.fillStyle='#94a3b8';ctx.font='bold 12px Inter,sans-serif';ctx.textAlign='center';
+      ctx.fillText(b.label,(x1+x2)/2,area.top+14);ctx.restore();
+    });
+  }};
+  charts.cv0=new Chart(document.getElementById('cv0'),{type:'line',data:{labels:contLabels,datasets:[
+    {label:'早上·收缩',data:contMS,borderColor:PC.morning,backgroundColor:PC.morning,borderWidth:2,spanGaps:true,pointRadius:1.5},
+    {label:'中午·收缩',data:contNS,borderColor:PC.noon,backgroundColor:PC.noon,borderWidth:2,spanGaps:true,pointRadius:1.5},
+    {label:'晚上·收缩',data:contES,borderColor:PC.evening,backgroundColor:PC.evening,borderWidth:2,spanGaps:true,pointRadius:1.5},
+    {label:'早上·舒张',data:contMD,borderColor:PCL.morning,backgroundColor:PCL.morning,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
+    {label:'中午·舒张',data:contND,borderColor:PCL.noon,backgroundColor:PCL.noon,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
+    {label:'晚上·舒张',data:contED,borderColor:PCL.evening,backgroundColor:PCL.evening,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:20},grid:{display:false}},y:{min:35,max:180,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}}},elements:{line:{tension:.3}}},plugins:[monthBandPlugin]});
+
+  // bar chart — x-axis = month×period, bars = 收缩/舒张, month label drawn on bar
+  const periods=['morning','noon','evening'];
+  const barLabels=[], barSys=[], barDia=[], barMonthTag=[];
+  stats.forEach(s=>{
+    periods.forEach(k=>{
+      barLabels.push(s.label+' '+PN[k]);
+      barSys.push(s[k]?.avgS||0);
+      barDia.push(s[k]?.avgD||0);
+      barMonthTag.push(s.label);
+    });
+  });
+  const barLabelPlugin={id:'barLbl',afterDraw(chart){
+    const ctx=chart.ctx;
+    const typeNames=['收缩','舒张'];
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      meta.data.forEach((bar,i)=>{
+        const val=ds.data[i]; if(!val)return;
+        const h=bar.base-bar.y;
+        const tag=barMonthTag[i]+(typeNames[di]||'');
+        ctx.save(); ctx.textAlign='center';
+        // value on top of bar
+        ctx.fillStyle='#1e293b'; ctx.font='bold 12px Inter,sans-serif';
+        ctx.fillText(val,bar.x,bar.y-6);
+        // month+type tag inside bar
+        if(h>28){
+          ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font='bold 11px Inter,sans-serif';
+          ctx.fillText(tag,bar.x,bar.y+h/2);
+        }
+        ctx.restore();
+      });
+    });
+  }};
+  charts.cv1=new Chart(document.getElementById('cv1'),{type:'bar',data:{labels:barLabels,datasets:[
+    {label:'收缩压',data:barSys,backgroundColor:barSys.map((_,i)=>{const mi=Math.floor(i/3);return['#3b82f6','#f97316','#8b5cf6','#06b6d4','#ec4899','#84cc16'][mi%6];}),borderRadius:4,barPercentage:.7},
+    {label:'舒张压',data:barDia,backgroundColor:barDia.map((_,i)=>{const mi=Math.floor(i/3);return['#93c5fd','#fdba74','#c4b5fd','#67e8f9','#f9a8d4','#bef264'][mi%6];}),borderRadius:4,barPercentage:.7},
+  ]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{position:'bottom',labels:{font:{size:12},usePointStyle:true}}},scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{min:50,max:155,grid:{color:'#f1f5f9'},ticks:{font:{size:11}}}}},plugins:[barLabelPlugin]});
+}
+
+// ========== INIT ==========
+function init(){
+  const mt=document.getElementById('mTabs');
+  const allItems=[...ALL_MONTHS.map(m=>({id:m.id,l:m.label})),{id:'cmp',l:'月对比'}];
+  allItems.forEach(t=>{
+    const b=document.createElement('button');b.textContent=t.l;b.className=t.id===curMonth?'on':'';
+    b.onclick=()=>{curMonth=t.id;mt.querySelectorAll('button').forEach(x=>x.className='');b.className='on';
+      document.getElementById('vTabs').style.display=t.id==='cmp'?'none':'flex';render();};
+    mt.appendChild(b);
+  });
+
+  const vt=document.getElementById('vTabs');
+  [{id:'trend',l:'日均趋势'},{id:'detail',l:'逐次记录'},{id:'pulse',l:'脉压差'},{id:'weekly',l:'周对比'},{id:'table',l:'数据表'}].forEach(t=>{
+    const b=document.createElement('button');b.textContent=t.l;b.className=t.id===curView?'on':'';
+    b.onclick=()=>{curView=t.id;vt.querySelectorAll('button').forEach(x=>x.className='');b.className='on';renderView();};
+    vt.appendChild(b);
+  });
+  render();
+}
+init();
 </script>
 </body>
 </html>
