@@ -220,6 +220,7 @@ function renderView(){
   const data=M.data, ct=document.getElementById('content');
   if(curView==='trend') buildTrend(data,ct);
   else if(curView==='detail') buildDetail(data,ct);
+  else if(curView==='abnormal') buildAbnormal(data,M,ct);
   else if(curView==='pulse') buildPulse(data,ct);
   else if(curView==='weekly') buildWeekly(data,M,ct);
   else if(curView==='table') buildTable(data,ct);
@@ -284,6 +285,71 @@ function buildTable(data,ct){
   h+='</tbody></table></div>';ct.innerHTML=h;
 }
 
+function getAbnormals(data,monthLabel){
+  const rows=[];
+  data.forEach(r=>{
+    [{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach((p,pi)=>{
+      if(!p.d)return;
+      p.d.forEach((v,vi)=>{
+        const flags=[];
+        if(v[0]>=140) flags.push({type:'收缩压≥140',cat:'sysHi',c:'#dc2626'});
+        if(v[0]<90) flags.push({type:'收缩压<90',cat:'sysLo',c:'#2563eb'});
+        if(v[1]>=90) flags.push({type:'舒张压≥90',cat:'diaHi',c:'#d97706'});
+        if(v[1]<60) flags.push({type:'舒张压<60',cat:'diaLo',c:'#e11d9c'});
+        if(flags.length){
+          rows.push({day:r.day,period:p.k,idx:vi+1,sys:v[0],dia:v[1],flags,month:monthLabel||'',label:(monthLabel?monthLabel:'')+(r.day)+'日'+PN[p.k]+(vi+1)});
+        }
+      });
+    });
+  });
+  return rows;
+}
+
+function buildAbnormal(data,M,ct){
+  const rows=getAbnormals(data,M.label);
+  const counts={sysHi:0,sysLo:0,diaHi:0,diaLo:0};
+  rows.forEach(r=>r.flags.forEach(f=>counts[f.cat]++));
+  const total=[];data.forEach(r=>{[r.m,r.n,r.e].forEach(p=>{if(p)p.forEach(()=>total.push(1));});});
+
+  let html='<div class="sr">';
+  [{l:'收缩压≥140',v:counts.sysHi,c:'#dc2626',icon:'↑'},{l:'收缩压<90',v:counts.sysLo,c:'#2563eb',icon:'↓'},{l:'舒张压≥90',v:counts.diaHi,c:'#d97706',icon:'↑'},{l:'舒张压<60',v:counts.diaLo,c:'#e11d9c',icon:'↓'}].forEach(s=>{
+    html+=`<div class="sc"><div class="sl">${s.icon} ${s.l}</div><div class="sv" style="color:${s.c}">${s.v}<small>次 / ${total.length}测</small></div></div>`;
+  });
+  html+='</div>';
+
+  html+=`<div class="cb"><h3>异常读数分布</h3><div class="ds">红点=收缩压≥140 · 蓝点=收缩压<90 · 橙点=舒张压≥90 · 洋红点=舒张压<60 · 灰线为全部读数背景</div><div style="position:relative;height:400px"><canvas id="cvAb"></canvas></div></div>`;
+
+  html+='<div class="cb" style="overflow-x:auto"><h3>异常记录明细（共'+rows.length+'条）</h3><div class="ds" style="margin-bottom:10px">按日期排列，标注异常类型</div>';
+  html+='<table><thead><tr style="border-bottom:2px solid #1e293b"><th>日期</th><th>时段</th><th>收缩压</th><th>舒张压</th><th>异常类型</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const flagHtml=r.flags.map(f=>`<span style="display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${f.c}11;color:${f.c};margin-right:4px">${f.type}</span>`).join('');
+    html+=`<tr style="border-bottom:1px solid #f1f5f9"><td style="font-weight:700">${r.day}日</td><td style="color:${PC[r.period]}">${PN[r.period]}#${r.idx}</td><td style="${r.flags.some(f=>f.cat.startsWith('sys'))?'font-weight:700':''}">${r.sys}</td><td style="${r.flags.some(f=>f.cat.startsWith('dia'))?'font-weight:700':''}">${r.dia}</td><td>${flagHtml}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  ct.innerHTML=html;
+
+  // chart: all readings as grey background, abnormal points highlighted
+  const allPts=[];
+  data.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(p=>{if(!p.d)return;p.d.forEach((v,i)=>{allPts.push({x:allPts.length,sys:v[0],dia:v[1],day:r.day,period:p.k,idx:i+1});});});});
+
+  const sysHiPts=[],sysLoPts=[],diaHiPts=[],diaLoPts=[];
+  allPts.forEach((p,i)=>{
+    if(p.sys>=140) sysHiPts.push({x:i,y:p.sys});
+    if(p.sys<90) sysLoPts.push({x:i,y:p.sys});
+    if(p.dia>=90) diaHiPts.push({x:i,y:p.dia});
+    if(p.dia<60) diaLoPts.push({x:i,y:p.dia});
+  });
+
+  charts.cvAb=new Chart(document.getElementById('cvAb'),{type:'line',data:{labels:allPts.map((_,i)=>i),datasets:[
+    {label:'全部收缩压',data:allPts.map(p=>p.sys),borderColor:'rgba(148,163,184,0.2)',borderWidth:.8,pointRadius:0,order:5},
+    {label:'全部舒张压',data:allPts.map(p=>p.dia),borderColor:'rgba(203,213,225,0.15)',borderWidth:.5,pointRadius:0,order:5},
+    {label:'收缩压≥140',data:sysHiPts,borderColor:'transparent',backgroundColor:'#dc2626',pointRadius:5,pointStyle:'circle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'收缩压<90',data:sysLoPts,borderColor:'transparent',backgroundColor:'#2563eb',pointRadius:5,pointStyle:'circle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'舒张压≥90',data:diaHiPts,borderColor:'transparent',backgroundColor:'#d97706',pointRadius:5,pointStyle:'triangle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'舒张压<60',data:diaLoPts,borderColor:'transparent',backgroundColor:'#e11d9c',pointRadius:5,pointStyle:'triangle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{title:ctx=>{const i=ctx[0]?.parsed?.x??ctx[0]?.dataIndex;const p=allPts[i];return p?(p.day+'日'+PN[p.period]+'#'+p.idx):'';},label:ctx=>ctx.dataset.label+': '+ctx.parsed.y+' mmHg'}}},scales:{x:{display:false},y:{min:35,max:180,afterBuildTicks(axis){axis.ticks=[35,40,45,50,55,60,80,100,120,140,160,180].map(v=>({value:v}));},ticks:{font:{size:11},callback:function(v){return v<=60?v+'':v%20===0?v+'':'';}},grid:{color:function(ctx){return ctx.tick.value<60?'rgba(225,29,156,0.10)':ctx.tick.value===60?'rgba(225,29,156,0.25)':'#f1f5f9';}}}},elements:{line:{tension:.2}}}});
+}
+
 // ========== COMPARE ==========
 function renderCompare(){
   document.getElementById('hSub').textContent='月度对比 · '+ALL_MONTHS.map(m=>m.label).join(' vs ');
@@ -299,6 +365,8 @@ function renderCompare(){
   document.getElementById('sCards').innerHTML=sc;
 
   let html='<div class="cb"><h3>连续日均趋势（全部月份）</h3><div class="ds">早中晚平均收缩压连续走势 · 实线=收缩压 · 虚线=舒张压 · 背景色区分月份</div><div style="position:relative;height:420px"><canvas id="cv0"></canvas></div></div>';
+  html+='<div class="cb"><h3>⚠ 异常读数汇总</h3><div class="ds">红=收缩压≥140 · 蓝=收缩压<90 · 橙=舒张压≥90 · 洋红=舒张压<60 · 背景色区分月份</div><div style="position:relative;height:380px"><canvas id="cvAbCmp"></canvas></div></div>';
+  html+='<div class="cb" style="overflow-x:auto"><h3>各月异常次数对比</h3><div class="ds" style="margin-bottom:10px"></div><table id="abCmpTable"></table></div>';
   html+='<div class="cb"><h3>各月时段均值对比</h3><div class="ds">柱状图对比各月各时段的平均血压 · 数值标注在柱顶</div><div style="position:relative;height:360px"><canvas id="cv1"></canvas></div></div>';
   document.getElementById('content').innerHTML=html;
 
@@ -335,6 +403,44 @@ function renderCompare(){
     {label:'中午·舒张',data:contND,borderColor:PCL.noon,backgroundColor:PCL.noon,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
     {label:'晚上·舒张',data:contED,borderColor:PCL.evening,backgroundColor:PCL.evening,borderWidth:1,borderDash:[4,3],spanGaps:true,pointRadius:1},
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:20},grid:{display:false}},y:{min:35,max:180,afterBuildTicks(axis){axis.ticks=[35,40,45,50,55,60,80,100,120,140,160,180].map(v=>({value:v}));},ticks:{font:{size:11},callback:function(v){return v<=60?v+'':v%20===0?v+'':'';}},grid:{color:function(ctx){return ctx.tick.value<60?'rgba(225,29,156,0.10)':ctx.tick.value===60?'rgba(225,29,156,0.25)':'#f1f5f9';}}}},elements:{line:{tension:.3}}},plugins:[monthBandPlugin]});
+
+  // ===== abnormal readings across all months =====
+  const abAllPts=[],abBounds=[];
+  let abIdx=0;
+  ALL_MONTHS.forEach(m=>{
+    const abStart=abIdx;
+    m.data.forEach(r=>{[{k:'morning',d:r.m},{k:'noon',d:r.n},{k:'evening',d:r.e}].forEach(p=>{if(!p.d)return;p.d.forEach((v,i)=>{abAllPts.push({x:abIdx,sys:v[0],dia:v[1],day:r.day,period:p.k,idx:i+1,month:m.label});abIdx++;});});});
+    abBounds.push({label:m.label,start:abStart,end:abIdx-1});
+  });
+  const abSysHi=[],abSysLo=[],abDiaHi=[],abDiaLo=[];
+  abAllPts.forEach((p,i)=>{
+    if(p.sys>=140) abSysHi.push({x:i,y:p.sys});
+    if(p.sys<90) abSysLo.push({x:i,y:p.sys});
+    if(p.dia>=90) abDiaHi.push({x:i,y:p.dia});
+    if(p.dia<60) abDiaLo.push({x:i,y:p.dia});
+  });
+  const abBandPlugin={id:'abBand',beforeDraw(chart){const area=chart.chartArea;const x=chart.scales?.x;if(!area||!x)return;const ctx=chart.ctx;const bc=['rgba(59,130,246,0.04)','rgba(249,115,22,0.04)','rgba(139,92,246,0.04)','rgba(6,182,212,0.04)'];abBounds.forEach((b,i)=>{const x1=x.getPixelForValue(b.start),x2=x.getPixelForValue(b.end);ctx.save();ctx.fillStyle=bc[i%4];ctx.fillRect(x1,area.top,x2-x1,area.bottom-area.top);ctx.fillStyle='#94a3b8';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillText(b.label,(x1+x2)/2,area.top+14);ctx.restore();});}};
+  charts.cvAbCmp=new Chart(document.getElementById('cvAbCmp'),{type:'line',data:{labels:abAllPts.map((_,i)=>i),datasets:[
+    {label:'全部收缩压',data:abAllPts.map(p=>p.sys),borderColor:'rgba(148,163,184,0.15)',borderWidth:.6,pointRadius:0,order:5},
+    {label:'全部舒张压',data:abAllPts.map(p=>p.dia),borderColor:'rgba(203,213,225,0.10)',borderWidth:.4,pointRadius:0,order:5},
+    {label:'收缩压≥140',data:abSysHi,borderColor:'transparent',backgroundColor:'#dc2626',pointRadius:5,pointStyle:'circle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'收缩压<90',data:abSysLo,borderColor:'transparent',backgroundColor:'#2563eb',pointRadius:5,pointStyle:'circle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'舒张压≥90',data:abDiaHi,borderColor:'transparent',backgroundColor:'#d97706',pointRadius:5,pointStyle:'triangle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+    {label:'舒张压<60',data:abDiaLo,borderColor:'transparent',backgroundColor:'#e11d9c',pointRadius:5,pointStyle:'triangle',showLine:false,order:1,parsing:{xAxisKey:'x',yAxisKey:'y'}},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{title:ctx=>{const i=ctx[0]?.parsed?.x??ctx[0]?.dataIndex;const p=abAllPts[i];return p?(p.month+p.day+'日'+PN[p.period]+'#'+p.idx):'';},label:ctx=>ctx.dataset.label+': '+ctx.parsed.y+' mmHg'}}},scales:{x:{display:false},y:{min:35,max:180,afterBuildTicks(axis){axis.ticks=[35,40,45,50,55,60,80,100,120,140,160,180].map(v=>({value:v}));},ticks:{font:{size:11},callback:function(v){return v<=60?v+'':v%20===0?v+'':'';}},grid:{color:function(ctx){return ctx.tick.value<60?'rgba(225,29,156,0.10)':ctx.tick.value===60?'rgba(225,29,156,0.25)':'#f1f5f9';}}}},elements:{line:{tension:.2}}},plugins:[abBandPlugin]});
+
+  // abnormal count comparison table
+  let abTbl='<thead><tr style="border-bottom:2px solid #1e293b"><th>月份</th><th style="color:#dc2626">收缩≥140</th><th style="color:#2563eb">收缩<90</th><th style="color:#d97706">舒张≥90</th><th style="color:#e11d9c">舒张<60</th><th>异常总次数</th><th>总测量</th><th>异常率</th></tr></thead><tbody>';
+  ALL_MONTHS.forEach(m=>{
+    const ab=getAbnormals(m.data,m.label);
+    const c={sysHi:0,sysLo:0,diaHi:0,diaLo:0};
+    ab.forEach(r=>r.flags.forEach(f=>c[f.cat]++));
+    let total=0;m.data.forEach(r=>{[r.m,r.n,r.e].forEach(p=>{if(p)total+=p.length;});});
+    const abTotal=ab.length;
+    abTbl+=`<tr style="border-bottom:1px solid #f1f5f9"><td style="font-weight:700">${m.label}</td><td style="color:#dc2626;font-weight:${c.sysHi?700:400}">${c.sysHi}</td><td style="color:#2563eb;font-weight:${c.sysLo?700:400}">${c.sysLo}</td><td style="color:#d97706;font-weight:${c.diaHi?700:400}">${c.diaHi}</td><td style="color:#e11d9c;font-weight:${c.diaLo?700:400}">${c.diaLo}</td><td style="font-weight:700">${abTotal}</td><td>${total}</td><td style="font-weight:700">${Math.round(abTotal/total*100)}%</td></tr>`;
+  });
+  abTbl+='</tbody>';
+  document.getElementById('abCmpTable').innerHTML=abTbl;
 
   // bar chart — x-axis = month×period, bars = 收缩/舒张, month label drawn on bar
   const periods=['morning','noon','evening'];
@@ -387,7 +493,7 @@ function init(){
   });
 
   const vt=document.getElementById('vTabs');
-  [{id:'trend',l:'日均趋势'},{id:'detail',l:'逐次记录'},{id:'pulse',l:'脉压差'},{id:'weekly',l:'周对比'},{id:'table',l:'数据表'}].forEach(t=>{
+  [{id:'trend',l:'日均趋势'},{id:'detail',l:'逐次记录'},{id:'abnormal',l:'⚠ 异常'},{id:'pulse',l:'脉压差'},{id:'weekly',l:'周对比'},{id:'table',l:'数据表'}].forEach(t=>{
     const b=document.createElement('button');b.textContent=t.l;b.className=t.id===curView?'on':'';
     b.onclick=()=>{curView=t.id;vt.querySelectorAll('button').forEach(x=>x.className='');b.className='on';renderView();};
     vt.appendChild(b);
